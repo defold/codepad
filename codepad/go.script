@@ -1,0 +1,44 @@
+local codepad = require("codepad.codepad")
+
+function init(self)
+	self.script_index = codepad.register_script()
+	if codepad.funcs[self.script_index] and codepad.funcs[self.script_index].init then
+		codepad.funcs[self.script_index].init(self)
+	end
+end
+
+function final(self)
+	if codepad.funcs[self.script_index] and codepad.funcs[self.script_index].final then
+		codepad.funcs[self.script_index].final(self)
+	end
+end
+
+function update(self, dt)
+	if codepad.call_reload then
+		if codepad.funcs[self.script_index] and codepad.funcs[self.script_index].on_reload then
+			codepad.funcs[self.script_index].on_reload(self, dt)
+		end
+	end
+
+	if codepad.funcs[self.script_index] and codepad.funcs[self.script_index].update then
+		codepad.funcs[self.script_index].update(self, dt)
+	end
+end
+
+function on_message(self, message_id, message, sender)
+	if codepad.funcs[self.script_index] and codepad.funcs[self.script_index].on_message then
+		codepad.funcs[self.script_index].on_message(self, message_id, message, sender)
+	end
+end
+
+function on_input(self, action_id, action)
+	if codepad.funcs[self.script_index] and codepad.funcs[self.script_index].on_input then
+		codepad.funcs[self.script_index].on_input(self, action_id, action)
+	end
+end
+
+function on_reload(self)
+	if codepad.funcs[self.script_index] and codepad.funcs[self.script_index].on_reload then
+		codepad.funcs[self.script_index].on_reload(self, dt)
+	end
+end

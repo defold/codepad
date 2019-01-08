@@ -1,0 +1,22 @@
+local codepad = require("codepad.codepad")
+
+local scene_sprite = require "main.codepads.sprite.sprite"
+local scene_two_gos = require "main.codepads.two_gos.two_gos"
+local scene_gui_nodes = require "main.codepads.gui_nodes.gui_nodes"
+
+local scenes = {
+	scene_sprite, scene_two_gos, scene_gui_nodes,
+}
+
+function init(self)
+	msg.post("#", "acquire_input_focus")
+	codepad.init(self, scenes)
+end
+
+function update(self, dt)
+	codepad.update(self, dt)
+end
+
+function on_message(self, message_id, message, sender)
+	codepad.on_message(self, message_id, message, sender)
+end

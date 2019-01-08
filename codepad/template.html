@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="static/codepad.css">
+
+    <title>{{DEFOLD_APP_TITLE}}</title>
+
+    {{{DEFOLD_DEV_HEAD}}}
+
+</head>
+
+<body>
+    <div id="splash"><div>LOADING</div></div>
+</div>
+<div id="icons" style="display: none;">
+    <div id="icon-script">
+        <img src="static/icon-script.svg" class="svg-image">
+    </div>
+</div>
+    <div id="toolbar">Collection:
+        <select id="scene" onchange="codepad_change_scene()">
+            <!-- This will be populated at run-time -->
+        </select>
+        <button onclick="codepad_restart()">Restart</button>
+        <span id="defold_version"></span>
+        <div id="share-wrap">
+            <button onclick="codepad_share()"><img src="static/icon-share.svg" class="svg-image">Share</button>
+            <img src="static/icon-logo.svg" class="svg-image">
+        </div>
+    </div>
+
+    <div id="layout">
+
+
+        <div id="pane-editors" class="split split-vertical">
+            <div id="pane-console" class="split split-horizontal">
+                <div class="tabs-wrap"><input type="radio" id="console_tab" name="console_tab" value="console_tab" checked ><label for="console_tab">Console</label></div>
+                <div id="console-wrap" class="pane-content"><div id="console"></div></div>
+            </div>
+            <div id="pane-editor" class="split split-horizontal">
+                <div id="files" class="tabs-wrap"></div>
+                <div id="editor-wrap">
+                    <div id="editor"></div>
+                    <button onclick="codepad_reload()"><img src="static/icon-reload.svg" class="svg-image">Reload</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="pane-canvas" class="split split-vertical pane-content">
+            <div id="app-container" class="canvas-app-container">
+                <canvas id="canvas" class="canvas-app-canvas" tabindex="1" width="{{DEFOLD_DISPLAY_WIDTH}}" height="{{DEFOLD_DISPLAY_HEIGHT}}"></canvas>
+            </div>
+            <button id="reload_page" onclick="reload_page()">Close</button>
+            <button id="view_source" onclick="view_source()">View Source</button>
+        </div>
+    </div>
+</div>
+
+
+    <!-- -->
+      {{{DEFOLD_DEV_INLINE}}}
+      <script type='text/javascript' src="dmloader.js"></script>
+    <!-- -->
+
+    <script src="static/codepad.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js" type="text/javascript"></script>
+
+
+    <script type='text/javascript'>
+
+        function dynload(src, callback) {
+            var script = document.createElement('script'), loaded;
+            script.setAttribute('src', src);
+            if (callback) {
+              script.onreadystatechange = script.onload = function() {
+                if (!loaded) {
+                  callback();
+                }
+                loaded = true;
+              };
+            }
+            document.getElementsByTagName('head')[0].appendChild(script);
+        }
+
+        function dynload_multiple(sources, final_callback) {
+            var src = sources.pop();
+            if (src !== undefined) {
+                console.log("loading: " + src);
+                dynload(src, function() {
+                    dynload_multiple(sources, final_callback);
+                });
+            } else {
+                if (final_callback) {
+                    final_callback();
+                }
+            }
+        }
+
+        function is_embeded()
+        {
+            try {
+                return window.self !== window.top;
+            } catch (e) {
+                return true;
+            }
+        }
+
+        function fix_canvas_size(event)
+        {
+            var canvas = document.getElementById('canvas');
+            if (is_embeded()) {
+                canvas.width = document.body.offsetWidth;
+                canvas.height = document.body.offsetHeight;
+            } else {
+                canvas.width  = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            }
+        };
+        window.onresize = fix_canvas_size;
+
+        // Engine setup
+
+        function ShowPlayEmbed() {
+            var splash = document.getElementById("splash");
+            splash.onclick = InitCodepad;
+            splash.innerHTML = "<div>Run code</div>";
+            document.body.classList += "embedded";
+            var pane_editors = document.getElementById("pane-editors");
+            pane_editors.remove();
+        }
+
+        function InitCodepad() {
+            splash.onclick = undefined;
+            codepad_load_engine();
+        }
+
+        if (is_embeded()) {
+            ShowPlayEmbed();
+        } else {
+            codepad_load_editor(function() {
+                InitCodepad();
+            });
+        }
+
+        function view_source() {
+            window.open(window.location, "_blank");
+        }
+
+        function reload_page() {
+            window.location.reload();
+        }
+
+
+    </script>
+    <script type="text/javascript" src="static/keymaster.js"></script>
+    <link rel="stylesheet" type="text/css" href="static/syntax-theme.css">
+</body>
+</html>
