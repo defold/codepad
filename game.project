@@ -2,7 +2,7 @@
 title = DefoldCodePad
 version = 0.1
 bundle_resources = /codepad/bundle_resources/
-bundle_exclude_resources = 
+bundle_exclude_resources =
 
 [bootstrap]
 main_collection = /main/main.collectionc
@@ -11,6 +11,9 @@ render = /codepad/rendering/custom.renderc
 [input]
 game_binding = /input/game.input_bindingc
 use_accelerometer = 0
+
+[library]
+include_dirs = codepad
 
 [display]
 width = 720
@@ -24,4 +27,3 @@ shared_state = 1
 
 [html5]
 htmlfile = /codepad/template.html
-
