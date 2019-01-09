@@ -18,7 +18,10 @@ When you use the Codepad on a stand-alone webpage you need to define one or more
 
 When you use the Codepad embedded on a webpage you define a single scene and expose one or more scripts that should accept source code from the embedding page.
 
-In both cases you also need to use the Codepad HTML template (located in `codepad/template.html`) as HTML file in `game.project` in the `HTML5` section.
+## game.project setup
+In both the stand-alone and embedded version of the Code pad you need to use the Codepad HTML template (located in `codepad/template.html`) as HTML file in `game.project` in the `HTML5` section.
+
+You also need to make sure to include the static HTML5 content (css, javascript and images) from the `codepad/bundle_resources/` folder. You do this by adding `/codepad/bundle_resources/` in the Bundle Resources field of `game.project` in the `Project` section.
 
 ## Expose modifiable scripts
 The scripts that are modifiable from the Codepad can be both game object scripts and GUI scripts. A game object or GUI scene that wants to have a modifiable script must add the `codepad/go.script` or `codepad/gui.gui_script` respectively.
