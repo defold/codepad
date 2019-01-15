@@ -136,7 +136,7 @@
 
         function InitCodepad() {
             splash.onclick = undefined;
-            codepad_load_engine();
+            codepad_load_engine("{{DEFOLD_ARCHIVE_LOCATION_PREFIX}}", "{{DEFOLD_ARCHIVE_LOCATION_SUFFIX}}", "{{DEFOLD_BINARY_PREFIX}}");
         }
 
         if (is_embeded()) {

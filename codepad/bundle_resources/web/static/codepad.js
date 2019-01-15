@@ -65,10 +65,11 @@ function codepad_load_editor(callback) {
     });
 }
 
-function codepad_load_engine() {
+function codepad_load_engine(defold_archive_location_prefix, defold_archive_location_suffix, defold_binary_prefix) {
+    console.log("codepad_load_engine", defold_archive_location_prefix, defold_archive_location_suffix, defold_binary_prefix);
     var extra_params = {
         archive_location_filter: function( path ) {
-            return ("archive" + path + "");
+            return (defold_archive_location_prefix + path + defold_archive_location_suffix);
         },
 
         engine_arguments: ["--verify-graphics-calls=false"],
@@ -112,10 +113,11 @@ function codepad_load_engine() {
 
     Module.locateFile = function(path, scriptDirectory)
     {
+        console.log("Module.locateFile", defold_binary_prefix);
         // dmengine*.wasm is hardcoded in the built JS loader for WASM,
         // we need to replace it here with the correct project name.
         if (path == "dmengine.wasm" || path == "dmengine_release.wasm" || path == "dmengine_headless.wasm") {
-            path = "DefoldCodePad.wasm";
+            path = defold_binary_prefix + ".wasm";
         }
         return scriptDirectory + path;
     };
@@ -123,9 +125,9 @@ function codepad_load_engine() {
     var engineJS = document.createElement('script');
     engineJS.type = 'text/javascript';
     if (Module.isWASMSupported) {
-        engineJS.src = 'DefoldCodePad_wasm.js';
+        engineJS.src = defold_binary_prefix + '_wasm.js';
     } else {
-        engineJS.src = 'DefoldCodePad_asm.js';
+        engineJS.src = defold_binary_prefix + '_asm.js';
     }
     document.head.appendChild(engineJS);
     fix_canvas_size();
