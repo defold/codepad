@@ -11,17 +11,15 @@
     <title>{{DEFOLD_APP_TITLE}}</title>
 
     {{{DEFOLD_DEV_HEAD}}}
-
 </head>
 
 <body>
     <div id="splash"><div>LOADING</div></div>
-</div>
-<div id="icons" style="display: none;">
-    <div id="icon-script">
-        <img src="static/icon-script.svg" class="svg-image">
+    <div id="icons" style="display: none;">
+        <div id="icon-script">
+            <img src="static/icon-script.svg" class="svg-image">
+        </div>
     </div>
-</div>
     <div id="toolbar">Collection:
         <select id="scene" onchange="codepad_change_scene()">
             <!-- This will be populated at run-time -->
@@ -35,8 +33,6 @@
     </div>
 
     <div id="layout">
-
-
         <div id="pane-editors" class="split split-vertical">
             <div id="pane-console" class="split split-horizontal">
                 <div class="tabs-wrap"><input type="radio" id="console_tab" name="console_tab" value="console_tab" checked ><label for="console_tab">Console</label></div>
@@ -59,12 +55,11 @@
             <button id="view_source" onclick="view_source()">View Source</button>
         </div>
     </div>
-</div>
 
 
     <!-- -->
-      {{{DEFOLD_DEV_INLINE}}}
-      <script type='text/javascript' src="dmloader.js"></script>
+    {{{DEFOLD_DEV_INLINE}}}
+    <script type='text/javascript' src="dmloader.js"></script>
     <!-- -->
 
     <script src="static/codepad.js"></script>
@@ -72,81 +67,6 @@
 
 
     <script type='text/javascript'>
-
-        function dynload(src, callback) {
-            var script = document.createElement('script'), loaded;
-            script.setAttribute('src', src);
-            if (callback) {
-              script.onreadystatechange = script.onload = function() {
-                if (!loaded) {
-                  callback();
-                }
-                loaded = true;
-              };
-            }
-            document.getElementsByTagName('head')[0].appendChild(script);
-        }
-
-        function dynload_multiple(sources, final_callback) {
-            var src = sources.pop();
-            if (src !== undefined) {
-                console.log("loading: " + src);
-                dynload(src, function() {
-                    dynload_multiple(sources, final_callback);
-                });
-            } else {
-                if (final_callback) {
-                    final_callback();
-                }
-            }
-        }
-
-        function is_embeded()
-        {
-            try {
-                return window.self !== window.top;
-            } catch (e) {
-                return true;
-            }
-        }
-
-        function fix_canvas_size(event)
-        {
-            var canvas = document.getElementById('canvas');
-            if (is_embeded()) {
-                canvas.width = document.body.offsetWidth;
-                canvas.height = document.body.offsetHeight;
-            } else {
-                canvas.width  = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
-            }
-        };
-        window.onresize = fix_canvas_size;
-
-        // Engine setup
-
-        function ShowPlayEmbed() {
-            var splash = document.getElementById("splash");
-            splash.onclick = InitCodepad;
-            splash.innerHTML = "<div>Run code</div>";
-            document.body.classList += "embedded";
-            var pane_editors = document.getElementById("pane-editors");
-            pane_editors.remove();
-        }
-
-        function InitCodepad() {
-            splash.onclick = undefined;
-            codepad_load_engine("{{DEFOLD_ARCHIVE_LOCATION_PREFIX}}", "{{DEFOLD_ARCHIVE_LOCATION_SUFFIX}}", "{{DEFOLD_BINARY_PREFIX}}");
-        }
-
-        if (is_embeded()) {
-            ShowPlayEmbed();
-        } else {
-            codepad_load_editor(function() {
-                InitCodepad();
-            });
-        }
-
         function view_source() {
             window.open(window.location, "_blank");
         }
@@ -155,7 +75,7 @@
             window.location.reload();
         }
 
-
+        codepad_start("{{DEFOLD_ARCHIVE_LOCATION_PREFIX}}", "{{DEFOLD_ARCHIVE_LOCATION_SUFFIX}}", "{{DEFOLD_BINARY_PREFIX}}");
     </script>
     <script type="text/javascript" src="static/keymaster.js"></script>
     <link rel="stylesheet" type="text/css" href="static/syntax-theme.css">
