@@ -1,7 +1,9 @@
+go.property("script_id", hash(""))
+
 local codepad = require("codepad.codepad")
 
 function init(self)
-	self.script_index = codepad.register_script()
+	self.script_index = codepad.register_script(self.script_id)
 	if codepad.funcs[self.script_index] and codepad.funcs[self.script_index].init then
 		codepad.funcs[self.script_index].init(self)
 	end
