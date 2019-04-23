@@ -28,7 +28,11 @@ end
 function codepad.register_script(id)
 	local scene = codepad.scenes[codepad.current_cp]
 	assert(scene)
-	id = id or codepad.url_to_hex()
+	if id == hash("") then
+		id = codepad.url_to_hex()
+	else
+		id = hash_to_hex(id)
+	end
 	for i,script in ipairs(scene.scripts) do
 		if script.id == id then
 			return i
@@ -51,8 +55,12 @@ function codepad.init(self, scenes)
 		codepad.scenes[scene.url] = scene
 		for i,script in pairs(scene.scripts) do
 			assert(script.name, ("Script #%d doesn't have a name"):format(i))
-			assert(script.url, ("Script %s diesn't define a url"):format(script.name))
-			script.id = codepad.url_to_hex(msg.url(script.url))
+			assert(script.url or script.id, ("Script %s doesn't define a url or id"):format(script.name))
+			if script.url then
+				script.id = codepad.url_to_hex(msg.url(script.url))
+			else
+				script.id = hash_to_hex(hash(script.id))
+			end
 		end
 	end
 
