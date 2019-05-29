@@ -28,7 +28,7 @@ end
 function codepad.register_script(id)
 	local scene = codepad.scenes[codepad.current_cp]
 	assert(scene)
-	if id == hash("") then
+	if not id or id == hash("") then
 		id = codepad.url_to_hex()
 	else
 		id = hash_to_hex(id)
