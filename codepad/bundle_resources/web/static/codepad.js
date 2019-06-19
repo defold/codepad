@@ -36,6 +36,34 @@ function on_reload(self)
 
 end`;
 
+function dynload(src, callback) {
+    var script = document.createElement('script'), loaded;
+    script.setAttribute('src', src);
+    if (callback) {
+      script.onreadystatechange = script.onload = function() {
+        if (!loaded) {
+          callback();
+        }
+        loaded = true;
+      };
+    }
+    document.getElementsByTagName('head')[0].appendChild(script);
+}
+
+function dynload_multiple(sources, final_callback) {
+    var src = sources.pop();
+    if (src !== undefined) {
+        console.log("loading: " + src);
+        dynload(src, function() {
+            dynload_multiple(sources, final_callback);
+        });
+    } else {
+        if (final_callback) {
+            final_callback();
+        }
+    }
+}
+
 function codepad_load_editor(callback) {
     console.log("loading editor...");
     var js_libs = ["https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js",
@@ -305,6 +333,56 @@ function codepad_share() {
     window.location.hash = share_url;
 }
 
+// read by Defold runtime
 codepad_should_reload = false;
 codepad_should_restart = false;
 codepad_should_change_scene = true;
+
+
+function codepad_is_embedded()
+{
+    try {
+        return window.self !== window.top;
+    } catch (e) {
+        return true;
+    }
+}
+
+function fix_canvas_size(event)
+{
+    var canvas = document.getElementById('canvas');
+    if (codepad_is_embedded()) {
+        canvas.width = document.body.offsetWidth;
+        canvas.height = document.body.offsetHeight;
+    } else {
+        canvas.width  = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+}
+
+function codepad_init(locationPrefix, locationSuffix, binaryPrefix) {
+    splash.onclick = undefined;
+    codepad_load_engine(locationPrefix, locationSuffix, binaryPrefix);
+}
+
+function codepad_show_play_embed(locationPrefix, locationSuffix, binaryPrefix) {
+    var splash = document.getElementById("splash");
+    splash.onclick = function() {
+        codepad_init(locationPrefix, locationSuffix, binaryPrefix);
+    };
+    splash.innerHTML = "<div>Run code</div>";
+    document.body.classList += "embedded";
+    var pane_editors = document.getElementById("pane-editors");
+    pane_editors.remove();
+}
+
+function codepad_start(locationPrefix, locationSuffix, binaryPrefix) {
+    window.onresize = fix_canvas_size;
+    if (codepad_is_embedded()) {
+        codepad_show_play_embed(locationPrefix, locationSuffix, binaryPrefix);
+    } else {
+        codepad_load_editor(function() {
+            codepad_init(locationPrefix, locationSuffix, binaryPrefix);
+        });
+    }
+}
