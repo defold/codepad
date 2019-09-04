@@ -8,9 +8,7 @@
     <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="static/codepad.css">
 
-    <title>{{DEFOLD_APP_TITLE}}</title>
-
-    {{{DEFOLD_DEV_HEAD}}}
+    <title>{{project.title}} {{project.version}}</title>
 </head>
 
 <body>
@@ -49,7 +47,7 @@
 
         <div id="pane-canvas" class="split split-vertical pane-content">
             <div id="app-container" class="canvas-app-container">
-                <canvas id="canvas" class="canvas-app-canvas" tabindex="1" width="{{DEFOLD_DISPLAY_WIDTH}}" height="{{DEFOLD_DISPLAY_HEIGHT}}"></canvas>
+                <canvas id="canvas" class="canvas-app-canvas" tabindex="1" width="{{display.width}}" height="{{display.height}}"></canvas>
             </div>
             <button id="reload_page" onclick="reload_page()">Close</button>
             <button id="view_source" onclick="view_source()">View Source</button>
@@ -58,7 +56,6 @@
 
 
     <!-- -->
-    {{{DEFOLD_DEV_INLINE}}}
     <script type='text/javascript' src="dmloader.js"></script>
     <!-- -->
 
