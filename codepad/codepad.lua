@@ -56,6 +56,14 @@ function codepad.init(self, scenes)
 		for i,script in pairs(scene.scripts) do
 			assert(script.name, ("Script #%d doesn't have a name"):format(i))
 			assert(script.url or script.id, ("Script %s doesn't define a url or id"):format(script.name))
+			-- make a copy to ensure that if two scenes refers to the same script instance they
+			-- get correct ids
+			script = {
+				name = script.name,
+				url = script.url,
+				id = script.id,
+			}
+			scene.scripts[i] = script
 			if script.url then
 				script.id = codepad.url_to_hex(msg.url(script.url))
 			else
