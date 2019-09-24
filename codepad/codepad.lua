@@ -59,6 +59,7 @@ function codepad.init(self, scenes)
 			-- make a copy to ensure that if two scenes refers to the same script instance they
 			-- get correct ids
 			script = {
+				code = script.code,
 				name = script.name,
 				url = script.url,
 				id = script.id,
