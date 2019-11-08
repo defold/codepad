@@ -28,6 +28,7 @@ end
 function codepad.register_script(id)
 	local scene = codepad.scenes[codepad.current_cp]
 	assert(scene)
+	local original_id = id
 	if not id or id == hash("") then
 		id = codepad.url_to_hex()
 	else
@@ -38,7 +39,7 @@ function codepad.register_script(id)
 			return i
 		end
 	end
-	error("Unknown script! Did you forget to define it?")
+	error("Unknown script! Did you forget to define it? " .. tostring(original_id))
 end
 
 -- initialise the codepad
