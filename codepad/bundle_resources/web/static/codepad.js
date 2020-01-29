@@ -69,8 +69,9 @@ function dynload_multiple(sources, final_callback) {
  */
 function codepad_load_editor(callback) {
     console.log("loading editor...");
-    var js_libs = ["https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js",
-    "https://cdnjs.cloudflare.com/ajax/libs/split.js/1.5.10/split.min.js"];
+    var js_libs = [
+        "https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.7/ace.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/split.js/1.5.11/split.min.js"];
 
     dynload_multiple(js_libs, function() {
         console.log("editor loaded");
