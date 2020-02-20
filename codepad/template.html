@@ -26,6 +26,7 @@
         <span id="defold_version"></span>
         <div id="share-wrap">
             <button onclick="codepad_share()"><img src="static/icon-share.svg" class="svg-image">Share</button>
+            <button onclick="codepad_save()"><img src="static/icon-share.svg" class="svg-image">Save</button>
             <img src="static/icon-logo.svg" class="svg-image">
         </div>
     </div>
@@ -75,6 +76,8 @@
         codepad_start("{{DEFOLD_ARCHIVE_LOCATION_PREFIX}}", "{{DEFOLD_ARCHIVE_LOCATION_SUFFIX}}", "{{DEFOLD_BINARY_PREFIX}}");
     </script>
     <script type="text/javascript" src="static/keymaster.js"></script>
+    <script type="text/javascript" src="static/FileSaver.min.js"></script>
+    <script type="text/javascript" src="static/jszip.min.js"></script>
     <link rel="stylesheet" type="text/css" href="static/syntax-theme.css">
 </body>
 </html>

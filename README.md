@@ -60,3 +60,13 @@ Before the Codepad is used it must be initialised with available scenes and modi
 In the above example we define a single scene named "My Scene" with a proxy URL of "#scene_proxy" (relative to the running script). The scene has a single script named "go.script" and the script URL is "myscene:/go#go". The names should be descriptive and help the user of the Codepad to chose the right scene and script to edit.
 
 You can also provide an additional property `code` per script to provide a string containing any code you wish to use as default for the script. If no `code` is provided then the Codepad will use a default script containing empty Defold lifecycle functions.
+
+
+## Libraries
+Codepad uses the following libraries:
+
+* [FileSaver.js](https://github.com/eligrey/FileSaver.js)
+* [JSZip](https://github.com/Stuk/jszip)
+* [Keymaster](https://github.com/madrobby/keymaster)
+* [LZ-String](https://github.com/pieroxy/lz-string)
+	

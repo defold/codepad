@@ -177,6 +177,28 @@ function codepad_get_scene() {
     return scenes_elem.options[scenes_elem.selectedIndex].value;
 }
 
+function codepad_get_scene_object(scene_id)
+{
+    for (var i=0; i < scenes.length; i++)
+    {
+        var scene = scenes[i];
+        if (scene.id == scene_id)
+        {
+            return scene
+        }
+    }
+}
+
+function codepad_get_scene_name(scene_id)
+{
+    return codepad_get_scene_object(scene_id).name;
+}
+
+function codepad_get_scripts(scene_id)
+{
+    return codepad_get_scene_object(scene_id).scripts;
+}
+
 /**
  * Create the editor session for a scene. This will create the file tabs.
  * This is called when changing scene.
@@ -310,7 +332,7 @@ function codepad_get_code(i) {
     return "";
 }
 
-var deparam = function (querystring) {
+function deparam(querystring) {
     // remove any preceding url and split
     querystring = querystring.substring(querystring.indexOf('?')+1).split('&');
     var params = {}, pair, d = decodeURIComponent;
@@ -364,6 +386,32 @@ function codepad_share() {
     }
 
     window.location.hash = share_url;
+}
+
+/**
+ * Called when the user has chosen to save the current codepad contents. This
+ * will create a zip and start a download.
+ */
+function codepad_save() {
+    var scene_id = codepad_get_scene();
+    var scene_name = codepad_get_scene_name(scene_id);
+    var scripts = codepad_get_scripts(scene_id);
+
+    var zip_filename = scene_name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+    var zip = new JSZip();
+    var dir = zip.folder(zip_filename);
+    for (var i=0; i < scripts.length; i++)
+    {
+        var filename = scripts[i].name;
+        var code = codepad_get_code(i+1);
+        dir.file(filename, code);
+    }
+
+    zip.generateAsync({type:"blob"})
+    .then(function(content) {
+        saveAs(content, zip_filename);
+    });
 }
 
 // read by Defold runtime
