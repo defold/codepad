@@ -216,12 +216,10 @@ svg, .svg-image {
 }
 
 .gutter.gutter-horizontal {
-  background-image: url('grips/vertical.png');
   cursor: ew-resize;
 }
 
 .gutter.gutter-vertical {
-  background-image: url('grips/horizontal.png');
   cursor: ns-resize;
 }
 
