@@ -69,4 +69,6 @@ Codepad uses the following libraries:
 * [JSZip](https://github.com/Stuk/jszip)
 * [Keymaster](https://github.com/madrobby/keymaster)
 * [LZ-String](https://github.com/pieroxy/lz-string)
+* [Ace](https://github.com/ajaxorg/ace/)
+* [split.js](https://github.com/nathancahill/split/)
 	
