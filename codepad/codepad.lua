@@ -45,7 +45,28 @@ end
 -- initialise the codepad
 -- @param scene List of scenes to chose from
 function codepad.init(self, scenes)
-	assert(html5, "You must run this from a browser")
+	if not html5 then
+		html5 = {}
+		html5.mock = {
+			codepad_should_change_scene = true,
+			codepad_should_reload = false,
+			codepad_should_restart = false,
+		}
+		html5.run = function(code)
+			if code == "codepad_should_change_scene" then
+				return tostring(html5.mock.codepad_should_change_scene)
+			elseif code == "codepad_should_reload" then
+				return tostring(html5.mock.codepad_should_reload)
+			elseif code == "codepad_should_restart" then
+				return tostring(html5.mock.codepad_should_restart)
+			elseif code == "codepad_get_scene()" then
+				html5.mock.codepad_should_change_scene = false
+				return scenes[1].url
+			elseif code:match("codepad_ready") then
+				-- no-op
+			end
+		end
+	end
 	sys.set_error_handler(codepad.error_handler)
 
 	-- validate scenes and store them (keyed on url)
@@ -94,8 +115,9 @@ function codepad.update(self, dt)
 		codepad.check_should_reload()
 		codepad.check_should_restart()
 	end
+
 	-- draw grid if enabled for the current scene
-	if codepad.scenes[codepad.current_cp].grid then
+	if codepad.current_cp and codepad.scenes[codepad.current_cp].grid then
 		local grid_line_count = 100
 		local grid_step = 50
 		local color = vmath.vector4(0.3)
@@ -157,6 +179,7 @@ function codepad.reload()
 end
 
 function codepad.restart(scene)
+	assert(scene, "You must provide a scene")
 	print("Restarting...")
 	-- unload current pad and async load the cp again
 	if codepad.current_cp then
@@ -184,8 +207,10 @@ function codepad.get_external_code()
 			on_reload = nil
 		}
 
-		local new_code = html5.run("codepad_get_code(" .. i .. ")")
-		new_code, err = loadstring(new_code, "=" .. tostring(codepad.scenes[codepad.current_cp].scripts[i].name))
+		local new_code, err = html5.run("codepad_get_code(" .. i .. ")")
+		if new_code then
+			new_code, err = loadstring(new_code, "=" .. tostring(codepad.scenes[codepad.current_cp].scripts[i].name))
+		end
 
 		if not new_code then
 			is_error = true
@@ -234,7 +259,7 @@ local console_max = 80
 print = function(...)
 	___print(...)
 
-	if html5 then
+	if html5 and not html5.mock then
 		local input = {...}
 		local line = ""
 		--for _,v in pairs(input) do
@@ -268,9 +293,7 @@ print = function(...)
 			out = out .. v .. "<br>"
 		end
 
-		if html5 then
-			html5.run('codepad_update_console("' .. out .. '")')
-		end
+		html5.run('codepad_update_console("' .. out .. '")')
 	end
 end
 
