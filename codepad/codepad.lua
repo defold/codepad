@@ -64,6 +64,12 @@ function codepad.init(self, scenes)
 				return scenes[1].url
 			elseif code:match("codepad_ready") then
 				-- no-op
+			elseif code:match("codepad_get_code") then
+				local id = tonumber(code:match("codepad_get_code%((.*)%)"))
+				local scene = codepad.scenes[codepad.current_cp]
+				if scene then
+					return scene.scripts[id].code
+				end
 			end
 		end
 	end
