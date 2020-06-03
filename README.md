@@ -1,5 +1,5 @@
 # Codepad
-Online Defold compiler/interpreter. [Try it here](https://codepad.defold.com) or host your own custom version.
+Online Defold compiler/interpreter. [Try it here](https://defold.com/codepad/) or host your own custom version.
 
 # Installation
 You can use the Codepad in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:
