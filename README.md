@@ -26,7 +26,7 @@ You also need to make sure to include the static HTML5 content (css, javascript 
 ## Expose modifiable scripts
 The scripts that are modifiable from the Codepad can be both game object scripts and GUI scripts. A game object or GUI scene that wants to have a modifiable script must add the `codepad/go.script` or `codepad/gui.gui_script` respectively.
 
-## Intialise and update the codepad
+## Initialise and update the codepad
 Before the Codepad is used it must be initialised with available scenes and modifiable scripts per scene.
 
 	local codepad = require "codepad.codepad"
