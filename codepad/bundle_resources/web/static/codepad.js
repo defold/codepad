@@ -97,77 +97,6 @@ function codepad_load_editor(callback) {
     });
 }
 
-/**
- * Load the Defold engine
- */
-function codepad_load_engine(defold_archive_location_prefix, defold_archive_location_suffix, defold_binary_prefix) {
-    console.log("codepad_load_engine", defold_archive_location_prefix, defold_archive_location_suffix, defold_binary_prefix);
-    var extra_params = {
-        archive_location_filter: function( path ) {
-            return (defold_archive_location_prefix + path + defold_archive_location_suffix);
-        },
-
-        engine_arguments: ["--verify-graphics-calls=false"],
-
-        splash_image: "splash_image.png",
-        custom_heap_size: 268435456
-    };
-
-    var splash = document.getElementById("splash");
-    Progress = {
-        progress_id: "defold-progress",
-        bar_id: "defold-progress-bar",
-        label_id: "defold-progress-label",
-
-        addProgress : function (canvas) {
-            splash.innerHTML = '<div id="defold-progress-wrap"><div id="' + Progress.label_id + '"></div><div id="' + Progress.progress_id + '"><div id="' + Progress.bar_id + '" style="width: 0%;"></div></div></div>';
-            Progress.bar = document.getElementById(Progress.bar_id);
-            Progress.progress = document.getElementById(Progress.progress_id);
-            Progress.label = document.getElementById(Progress.label_id);
-        },
-
-        updateProgress: function (percentage, text) {
-            Progress.bar.style.width = percentage + "%";
-
-            text = (typeof text === 'undefined') ? Math.round(percentage) + "%" : text;
-            Progress.label.innerText = text;
-        },
-
-        removeProgress: function () {
-            if (Progress.progress.parentElement !== null) {
-                splash.remove();
-            }
-            fix_canvas_size();
-        }
-    };
-
-    // Run engine
-    Module.onRuntimeInitialized = function() {
-        Module.runApp("canvas", extra_params);
-    };
-
-    Module.locateFile = function(path, scriptDirectory)
-    {
-        console.log("Module.locateFile", defold_binary_prefix);
-        // dmengine*.wasm is hardcoded in the built JS loader for WASM,
-        // we need to replace it here with the correct project name.
-        if (path == "dmengine.wasm" || path == "dmengine_release.wasm" || path == "dmengine_headless.wasm") {
-            path = defold_binary_prefix + ".wasm";
-        }
-        return scriptDirectory + path;
-    };
-
-    var engineJS = document.createElement('script');
-    engineJS.type = 'text/javascript';
-    if (Module.isWASMSupported) {
-        engineJS.src = defold_binary_prefix + '_wasm.js';
-    } else {
-        engineJS.src = defold_binary_prefix + '_asm.js';
-    }
-    document.head.appendChild(engineJS);
-    fix_canvas_size();
-}
-
 
 /**
  * Get the currently selected scene from the scene drop-down
@@ -441,15 +370,18 @@ function fix_canvas_size(event)
     }
 }
 
-function codepad_init(locationPrefix, locationSuffix, binaryPrefix) {
+function codepad_loaded(callback) {
+    var splash = document.getElementById("splash");
     splash.onclick = undefined;
-    codepad_load_engine(locationPrefix, locationSuffix, binaryPrefix);
+    splash.remove();
+    callback();
+    fix_canvas_size();
 }
 
-function codepad_show_play_embed(locationPrefix, locationSuffix, binaryPrefix) {
+function codepad_show_play_embed(callback) {
     var splash = document.getElementById("splash");
     splash.onclick = function() {
-        codepad_init(locationPrefix, locationSuffix, binaryPrefix);
+        codepad_loaded(callback);
     };
     splash.innerHTML = "<div>Run code</div>";
     document.body.classList += "embedded";
@@ -457,13 +389,13 @@ function codepad_show_play_embed(locationPrefix, locationSuffix, binaryPrefix) {
     pane_editors.remove();
 }
 
-function codepad_start(locationPrefix, locationSuffix, binaryPrefix) {
+function codepad_start(callback) {
     window.onresize = fix_canvas_size;
     if (codepad_is_embedded()) {
-        codepad_show_play_embed(locationPrefix, locationSuffix, binaryPrefix);
+        codepad_show_play_embed(callback);
     } else {
         codepad_load_editor(function() {
-            codepad_init(locationPrefix, locationSuffix, binaryPrefix);
+            codepad_loaded(callback);
         });
     }
 }

@@ -57,8 +57,32 @@
 
 
     <!-- -->
-    <script type='text/javascript' src="dmloader.js"></script>
+    <script id='engine-loader' type='text/javascript' src="dmloader.js"></script>
     <!-- -->
+    <script id='engine-setup' type='text/javascript'>
+        var extra_params = {
+            archive_location_filter: function( path ) {
+                return ("{{DEFOLD_ARCHIVE_LOCATION_PREFIX}}" + path + "{{DEFOLD_ARCHIVE_LOCATION_SUFFIX}}");
+            },
+            engine_arguments: [{{#DEFOLD_ENGINE_ARGUMENTS}}"{{.}}",{{/DEFOLD_ENGINE_ARGUMENTS}}],
+            custom_heap_size: {{DEFOLD_HEAP_SIZE}},
+            disable_context_menu: true
+        }
+
+        Module['onRuntimeInitialized'] = function() {
+            Module.runApp("canvas", extra_params);
+        };
+
+        Module["locateFile"] = function(path, scriptDirectory)
+        {
+            // dmengine*.wasm is hardcoded in the built JS loader for WASM,
+            // we need to replace it here with the correct project name.
+            if (path == "dmengine.wasm" || path == "dmengine_release.wasm" || path == "dmengine_headless.wasm") {
+                path = "{{exe-name}}.wasm";
+            }
+            return scriptDirectory + path;
+        };
+    </script>
 
     <script src="static/codepad.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js" type="text/javascript"></script>
@@ -73,7 +97,9 @@
             window.location.reload();
         }
 
-        codepad_start("{{DEFOLD_ARCHIVE_LOCATION_PREFIX}}", "{{DEFOLD_ARCHIVE_LOCATION_SUFFIX}}", "{{DEFOLD_BINARY_PREFIX}}");
+        codepad_start(function() {
+            EngineLoader.load("canvas", "{{exe-name}}");
+        });
     </script>
     <script type="text/javascript" src="static/keymaster.js"></script>
     <script type="text/javascript" src="static/FileSaver.min.js"></script>
