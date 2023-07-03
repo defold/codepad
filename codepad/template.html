@@ -35,7 +35,10 @@
         <div id="pane-editors" class="split split-vertical">
             <div id="pane-console" class="split split-horizontal">
                 <div class="tabs-wrap"><input type="radio" id="console_tab" name="console_tab" value="console_tab" checked ><label for="console_tab">Console</label></div>
-                <div id="console-wrap" class="pane-content"><div id="console"></div></div>
+                <div id="console-wrap" class="pane-content">
+                    <div id="console"></div>
+                        <button onclick="codepad_clear_console()">Clear</button>
+                </div>
             </div>
             <div id="pane-editor" class="split split-horizontal">
                 <div id="files" class="tabs-wrap"></div>

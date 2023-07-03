@@ -234,6 +234,10 @@ function codepad_change_file() {
     }
 }
 
+function codepad_clear_console() {
+    codepad_should_clear_console = true;
+}
+
 function codepad_update_console(text) {
     var console_elem = document.getElementById("console");
     if (console_elem) {
@@ -347,6 +351,7 @@ function codepad_save() {
 codepad_should_reload = false;
 codepad_should_restart = false;
 codepad_should_change_scene = true;
+codepad_should_clear_console = false;
 
 
 function codepad_is_embedded()

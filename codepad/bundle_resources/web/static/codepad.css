@@ -198,6 +198,13 @@ svg, .svg-image {
     right: 0px;
 }
 
+#console-wrap > button {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 999998;
+}
+
 #console {
     position: absolute;
     top: 8px;

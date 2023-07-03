@@ -16,6 +16,9 @@ local luastrsanitize = function (str)
 	return str
 end
 
+local console_lines = {}
+local console_max = 80
+
 codepad.funcs = {}
 codepad.scenes = {}
 codepad.current_cp = nil
@@ -93,6 +96,7 @@ function codepad.update(self, dt)
 		codepad.check_change_scene()
 		codepad.check_should_reload()
 		codepad.check_should_restart()
+		codepad.check_should_clear_console()
 	end
 	-- draw grid if enabled for the current scene
 	if codepad.scenes[codepad.current_cp].grid then
@@ -147,6 +151,15 @@ function codepad.check_should_restart()
 	if should_restart == "true" then
 		codepad.restart(codepad.current_cp)
 		html5.run('codepad_should_restart = false;')
+	end
+end
+
+function codepad.check_should_clear_console()
+	local should_clear = html5.run('codepad_should_clear_console')
+	if should_clear == "true" then
+		console_lines = {}
+		html5.run('codepad_should_clear_console = false;')
+		html5.run('codepad_update_console("")')
 	end
 end
 
@@ -229,8 +242,6 @@ end
 
 -- hack print
 local ___print = print
-local console_lines = {}
-local console_max = 80
 print = function(...)
 	___print(...)
 
