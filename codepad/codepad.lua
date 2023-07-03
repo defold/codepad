@@ -1,4 +1,3 @@
-local rxi_json = require "codepad.utils.json"
 local escape = require "codepad.utils.escape"
 
 local codepad = {}
@@ -78,7 +77,7 @@ function codepad.init(self, scenes)
 	end
 
 	-- send scenes to html
-	local scenes_json = rxi_json.encode(scenes)
+	local scenes_json = json.encode(scenes)
 	html5.run(("codepad_ready('%s')"):format(escape.escape(scenes_json)))
 
 	local engine_info = sys.get_engine_info()
