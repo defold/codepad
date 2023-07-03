@@ -12,6 +12,9 @@ local scenes = {
 function init(self)
 	msg.post("#", "acquire_input_focus")
 	codepad.init(self, scenes)
+	if not html5 then
+		codepad.restart(scene_sprite.url)
+	end
 end
 
 function update(self, dt)

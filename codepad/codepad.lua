@@ -47,7 +47,6 @@ end
 -- initialise the codepad
 -- @param scene List of scenes to chose from
 function codepad.init(self, scenes)
-	assert(html5, "You must run this from a browser")
 	sys.set_error_handler(codepad.error_handler)
 
 	-- validate scenes and store them (keyed on url)
@@ -74,6 +73,11 @@ function codepad.init(self, scenes)
 				script.id = hash_to_hex(hash(script.id))
 			end
 		end
+	end
+
+	if not html5 then
+		print("You must run this from a browser")
+		return
 	end
 
 	-- send scenes to html
@@ -180,6 +184,11 @@ function codepad.restart(scene)
 end
 
 function codepad.get_external_code()
+	if not html5 then
+		print("Ignoring request to get external code. Not running in a browser")
+		return
+	end
+
 	-- clear old code
 	codepad.funcs = {}
 
@@ -200,9 +209,7 @@ function codepad.get_external_code()
 		new_code, err = loadstring(new_code, "=" .. tostring(codepad.scenes[codepad.current_cp].scripts[i].name))
 
 		if not new_code then
-			is_error = true
-			print("Error while loading new code: " .. tostring(err))
-			is_error = false
+			error("Error while loading new code: " .. tostring(err))
 		else
 
 			local temp_G = {}
