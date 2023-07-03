@@ -1,19 +1,19 @@
 local codepad = require("codepad.codepad")
 
-local scene_sprite = require "main.codepads.sprite.sprite"
-local scene_two_gos = require "main.codepads.two_gos.two_gos"
-local scene_gui_nodes = require "main.codepads.gui_nodes.gui_nodes"
-local scene_factory = require "main.codepads.factory.factory"
 
 local scenes = {
-	scene_sprite, scene_two_gos, scene_gui_nodes, scene_factory
+	require("main.codepads.sprite.sprite"),
+	require("main.codepads.two_gos.two_gos"),
+	require("main.codepads.gui_nodes.gui_nodes"),
+	require("main.codepads.factory.factory"),
+	require("main.codepads.label.label"),
 }
 
 function init(self)
 	msg.post("#", "acquire_input_focus")
 	codepad.init(self, scenes)
 	if not html5 then
-		codepad.restart(scene_sprite.url)
+		codepad.restart(scenes[1].url)
 	end
 end
 
