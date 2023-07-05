@@ -12,6 +12,9 @@ var codepad_shared_sources = [];
 // all available scenes
 var scenes = [];
 
+var project_info = {};
+var engine_info = {};
+
 var default_script = `function init(self)
 
 end
@@ -203,8 +206,10 @@ function codepad_change_scene() {
  * 1. Check if this codepad was started from a link containing code or from scratch
  * 2. Show the initial/default scene
  */
-function codepad_ready(scenes_json) {
+function codepad_ready(scenes_json, project_json, engine_json) {
     scenes = JSON.parse(unescape(scenes_json));
+
+    // create scene dropdown
     var scenes_elem = document.getElementById("scene");
     for (var i=0; i < scenes.length; i++)
     {
@@ -213,6 +218,13 @@ function codepad_ready(scenes_json) {
         option.text = scenes[i].name;
         scenes_elem.appendChild(option);
     }
+
+    engine_info = JSON.parse(unescape(engine_json));
+    project_info = JSON.parse(unescape(project_json));
+
+    var version_string = "Defold " + engine_info.version + " (" + engine_info.version_sha1 + ")";
+    document.getElementById("defold_version").innerHTML = version_string;
+
     codepad_trigger_url_check();
     codepad_change_scene();
 }

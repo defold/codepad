@@ -80,12 +80,17 @@ function codepad.init(self, scenes)
 		return
 	end
 
-	-- send scenes to html
-	local scenes_json = json.encode(scenes)
-	html5.run(("codepad_ready('%s')"):format(escape.escape(scenes_json)))
-
+	-- send scenes and configs to html
+	local project_info = {
+		title = sys.get_config_string("project.title"),
+		version = sys.get_config_string("project.version"),
+	}
 	local engine_info = sys.get_engine_info()
-	html5.run(("document.getElementById('defold_version').innerHTML = 'Defold %s (%s)'"):format(engine_info.version, engine_info.version_sha1))
+	local scenes_json = escape.escape(json.encode(scenes))
+	local project_json = escape.escape(json.encode(project_info))
+	local engine_json = escape.escape(json.encode(engine_info))
+	html5.run(("codepad_ready('%s', '%s', '%s')"):format(scenes_json, project_json, engine_json))
+
 end
 
 
