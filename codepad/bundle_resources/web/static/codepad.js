@@ -43,12 +43,12 @@ function dynload(src, callback) {
     var script = document.createElement('script'), loaded;
     script.setAttribute('src', src);
     if (callback) {
-      script.onreadystatechange = script.onload = function() {
-        if (!loaded) {
-          callback();
-        }
-        loaded = true;
-      };
+        script.onreadystatechange = script.onload = function () {
+            if (!loaded) {
+                callback();
+            }
+            loaded = true;
+        };
     }
     document.getElementsByTagName('head')[0].appendChild(script);
 }
@@ -57,7 +57,7 @@ function dynload_multiple(sources, final_callback) {
     var src = sources.pop();
     if (src !== undefined) {
         console.log("loading: " + src);
-        dynload(src, function() {
+        dynload(src, function () {
             dynload_multiple(sources, final_callback);
         });
     } else {
@@ -76,7 +76,7 @@ function codepad_load_editor(callback) {
         "https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.7/ace.js",
         "https://cdnjs.cloudflare.com/ajax/libs/split.js/1.5.11/split.min.js"];
 
-    dynload_multiple(js_libs, function() {
+    dynload_multiple(js_libs, function () {
         console.log("editor loaded");
 
         EditSession = require("ace/edit_session").EditSession;
@@ -87,7 +87,7 @@ function codepad_load_editor(callback) {
         // Setup panel splitters
         Split(['#pane-editors', '#pane-canvas'], {
             direction: 'vertical',
-            onDrag: function() { fix_canvas_size(); }
+            onDrag: function () { fix_canvas_size(); }
         });
 
         Split(['#pane-console', '#pane-editor'], {
@@ -109,25 +109,20 @@ function codepad_get_scene() {
     return scenes_elem.options[scenes_elem.selectedIndex].value;
 }
 
-function codepad_get_scene_object(scene_id)
-{
-    for (var i=0; i < scenes.length; i++)
-    {
+function codepad_get_scene_object(scene_id) {
+    for (var i = 0; i < scenes.length; i++) {
         var scene = scenes[i];
-        if (scene.id == scene_id)
-        {
+        if (scene.id == scene_id) {
             return scene
         }
     }
 }
 
-function codepad_get_scene_name(scene_id)
-{
+function codepad_get_scene_name(scene_id) {
     return codepad_get_scene_object(scene_id).name;
 }
 
-function codepad_get_scripts(scene_id)
-{
+function codepad_get_scripts(scene_id) {
     return codepad_get_scene_object(scene_id).scripts;
 }
 
@@ -143,12 +138,10 @@ function codepad_create_edit_sessions(scene) {
     script_icon = script_icon.innerHTML;
 
     var new_buttons = "";
-    for (var i = 0; i < scene.scripts.length; i++)
-    {
-        var radio_id = "file_" + (i+1);
+    for (var i = 0; i < scene.scripts.length; i++) {
+        var radio_id = "file_" + (i + 1);
         var src_data = scene.scripts[i].code;
-        if (!src_data)
-        {
+        if (!src_data) {
             src_data = default_script;
         }
         if (codepad_shared_sources[i] !== undefined) {
@@ -169,8 +162,7 @@ function codepad_create_edit_sessions(scene) {
 }
 
 function codepad_create_edit_sessions_from_shared_sources(scene) {
-    for (var i = 0; i < scene.scripts.length; i++)
-    {
+    for (var i = 0; i < scene.scripts.length; i++) {
         codepad_sessions[i] = codepad_shared_sources[i];
     }
 }
@@ -185,17 +177,28 @@ function codepad_create_edit_sessions_from_shared_sources(scene) {
 function codepad_change_scene() {
     codepad_should_change_scene = true;
     var scene_id = codepad_get_scene();
-    for (var i=0; i < scenes.length; i++)
-    {
+    for (var i = 0; i < scenes.length; i++) {
         var scene = scenes[i];
-        if (scene.id == scene_id)
-        {
+        if (scene.id == scene_id) {
             codepad_sessions = [];
             if (EditSession !== undefined) {
                 codepad_create_edit_sessions(scene);
             } else {
                 codepad_create_edit_sessions_from_shared_sources(scene);
             }
+            break;
+        }
+    }
+}
+
+
+// Set selected scene in the html drop down
+function codepad_set_selected_scene(scene_id) {
+    var scenes_elem = document.getElementById("scene");
+    var scene_options = scenes_elem.options;
+    for (var option, i = 0; option = scene_options[i]; i++) {
+        if (option.value == scene_id) {
+            scenes_elem.selectedIndex = i;
             break;
         }
     }
@@ -211,8 +214,7 @@ function codepad_ready(scenes_json, project_json, engine_json) {
 
     // create scene dropdown
     var scenes_elem = document.getElementById("scene");
-    for (var i=0; i < scenes.length; i++)
-    {
+    for (var i = 0; i < scenes.length; i++) {
         var option = document.createElement("option");
         option.value = scenes[i].id;
         option.text = scenes[i].name;
@@ -236,10 +238,8 @@ function codepad_ready(scenes_json, project_json, engine_json) {
 function codepad_change_file() {
     var file_tabs = document.getElementsByName('current_file');
 
-    for (var i = 0, length = file_tabs.length; i < length; i++)
-    {
-        if (file_tabs[i].checked)
-        {
+    for (var i = 0, length = file_tabs.length; i < length; i++) {
+        if (file_tabs[i].checked) {
             editor.setSession(codepad_sessions[i]);
             break;
         }
@@ -267,11 +267,11 @@ function codepad_restart() {
 }
 
 function codepad_get_code(i) {
-    if (codepad_sessions[i-1]) {
+    if (codepad_sessions[i - 1]) {
         if (EditSession !== undefined) {
-            return codepad_sessions[i-1].getDocument().getValue();
+            return codepad_sessions[i - 1].getDocument().getValue();
         } else {
-            return codepad_sessions[i-1];
+            return codepad_sessions[i - 1];
         }
     }
     return "";
@@ -279,7 +279,7 @@ function codepad_get_code(i) {
 
 function deparam(querystring) {
     // remove any preceding url and split
-    querystring = querystring.substring(querystring.indexOf('?')+1).split('&');
+    querystring = querystring.substring(querystring.indexOf('?') + 1).split('&');
     var params = {}, pair, d = decodeURIComponent;
     // march and parse
     for (var i = querystring.length - 1; i >= 0; i--) {
@@ -323,10 +323,9 @@ function codepad_trigger_url_check() {
  */
 function codepad_share() {
     var share_url = "?c=" + codepad_get_scene();
-    for (var i = 0; i < codepad_sessions.length; i++)
-    {
-        var compressed_code = LZString.compressToBase64(codepad_get_code(i+1));
-        compressed_code = "&s" + (i+1) + "=" + compressed_code;
+    for (var i = 0; i < codepad_sessions.length; i++) {
+        var compressed_code = LZString.compressToBase64(codepad_get_code(i + 1));
+        compressed_code = "&s" + (i + 1) + "=" + compressed_code;
         share_url = share_url + compressed_code;
     }
 
@@ -346,17 +345,16 @@ function codepad_save() {
 
     var zip = new JSZip();
     var dir = zip.folder(zip_filename);
-    for (var i=0; i < scripts.length; i++)
-    {
+    for (var i = 0; i < scripts.length; i++) {
         var filename = scripts[i].name;
-        var code = codepad_get_code(i+1);
+        var code = codepad_get_code(i + 1);
         dir.file(filename, code);
     }
 
-    zip.generateAsync({type:"blob"})
-    .then(function(content) {
-        saveAs(content, zip_filename);
-    });
+    zip.generateAsync({ type: "blob" })
+        .then(function (content) {
+            saveAs(content, zip_filename);
+        });
 }
 
 // read by Defold runtime
@@ -366,8 +364,7 @@ codepad_should_change_scene = true;
 codepad_should_clear_console = false;
 
 
-function codepad_is_embedded()
-{
+function codepad_is_embedded() {
     try {
         return window.self !== window.top;
     } catch (e) {
@@ -375,14 +372,13 @@ function codepad_is_embedded()
     }
 }
 
-function fix_canvas_size(event)
-{
+function fix_canvas_size(event) {
     var canvas = document.getElementById('canvas');
     if (codepad_is_embedded()) {
         canvas.width = document.body.offsetWidth;
         canvas.height = document.body.offsetHeight;
     } else {
-        canvas.width  = canvas.offsetWidth;
+        canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
     }
 }
@@ -397,7 +393,7 @@ function codepad_loaded(callback) {
 
 function codepad_show_play_embed(callback) {
     var splash = document.getElementById("splash");
-    splash.onclick = function() {
+    splash.onclick = function () {
         codepad_loaded(callback);
     };
     splash.innerHTML = "<div>Run code</div>";
@@ -411,7 +407,7 @@ function codepad_start(callback) {
     if (codepad_is_embedded()) {
         codepad_show_play_embed(callback);
     } else {
-        codepad_load_editor(function() {
+        codepad_load_editor(function () {
             codepad_loaded(callback);
         });
     }

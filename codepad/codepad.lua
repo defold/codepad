@@ -137,6 +137,11 @@ function codepad.on_message(self, message_id, message, sender)
 	end
 end
 
+function codepad.change_scene(scene_id)
+	assert(scene_id, 'You must specify scene_id when you change scene manually')
+	html5.run('codepad_change_scene("' .. scene_id .. '")')
+end
+
 function codepad.check_change_scene()
 	local should_change_scene = html5.run('codepad_should_change_scene')
 	if should_change_scene == "true" then
