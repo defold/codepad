@@ -321,6 +321,67 @@ function codepad_trigger_url_check() {
  * will update the browser URL to contain the full contents of the codepad for
  * easy sharing.
  */
+function codepad_copy_to_clipboard(text, on_done) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(function () { on_done(true); })
+            .catch(function () { codepad_copy_to_clipboard_fallback(text, on_done); });
+        return;
+    }
+    codepad_copy_to_clipboard_fallback(text, on_done);
+}
+
+function codepad_copy_to_clipboard_fallback(text, on_done) {
+    var textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.top = "-1000px";
+    textarea.style.left = "-1000px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    var copied = false;
+    try {
+        copied = document.execCommand("copy");
+    } catch (e) {
+        copied = false;
+    }
+    document.body.removeChild(textarea);
+    on_done(copied);
+}
+
+function codepad_flash_share_copied() {
+    var button = document.getElementById("codepad_share_button");
+    if (!button) {
+        return;
+    }
+    var label = button.querySelector(".label");
+    if (label) {
+        if (!button.dataset.defaultLabel) {
+            button.dataset.defaultLabel = label.textContent;
+        }
+        label.textContent = "Copied!";
+    } else {
+        if (!button.dataset.defaultLabel) {
+            button.dataset.defaultLabel = button.textContent;
+        }
+        button.textContent = "Copied!";
+    }
+    if (button._codepadResetTimer) {
+        clearTimeout(button._codepadResetTimer);
+    }
+    button._codepadResetTimer = setTimeout(function () {
+        var defaultLabel = button.dataset.defaultLabel || "Share";
+        var restoreLabel = button.querySelector(".label");
+        if (restoreLabel) {
+            restoreLabel.textContent = defaultLabel;
+        } else {
+            button.textContent = defaultLabel;
+        }
+        button._codepadResetTimer = null;
+    }, 1000);
+}
+
 function codepad_share() {
     var share_url = "?c=" + codepad_get_scene();
     for (var i = 0; i < codepad_sessions.length; i++) {
@@ -330,6 +391,13 @@ function codepad_share() {
     }
 
     window.location.hash = share_url;
+    var base_url = window.location.href.split('#')[0];
+    var full_url = base_url + "#" + share_url;
+    codepad_copy_to_clipboard(full_url, function (copied) {
+        if (copied) {
+            codepad_flash_share_copied();
+        }
+    });
 }
 
 /**
