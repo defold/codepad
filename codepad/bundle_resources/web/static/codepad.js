@@ -1,6 +1,7 @@
 /*jshint esversion: 6 */
 
 var EditSession = undefined;
+var UndoManager = undefined;
 var editor = undefined;
 
 // EditSessions per file
@@ -80,6 +81,7 @@ function codepad_load_editor(callback) {
         console.log("editor loaded");
 
         EditSession = require("ace/edit_session").EditSession;
+        UndoManager = require("ace/undomanager").UndoManager;
         editor = ace.edit("editor");
         editor.setTheme("ace/theme/tomorrow_night_eighties");
         //editor.session.setMode("ace/mode/lua");
@@ -149,6 +151,9 @@ function codepad_create_edit_sessions(scene) {
         }
         var file_session = new EditSession(src_data);
         file_session.setMode("ace/mode/lua");
+        if (UndoManager) {
+            file_session.setUndoManager(new UndoManager());
+        }
         codepad_sessions[i] = file_session;
         var checked = "";
         if (i == 0) {
