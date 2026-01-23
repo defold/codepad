@@ -1,9 +1,8 @@
 [project]
 title = DefoldCodePad
-version = 0.1
+version = 0.2
 bundle_resources = /codepad/bundle_resources/
 bundle_exclude_resources = 
-custom_resources = main/scripts
 
 [bootstrap]
 main_collection = /main/main.collectionc
@@ -28,4 +27,5 @@ shared_state = 1
 
 [html5]
 htmlfile = /codepad/template.html
+scale_mode = stretch
 

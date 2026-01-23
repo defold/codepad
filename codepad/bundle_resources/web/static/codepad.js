@@ -15,6 +15,9 @@ var scenes = [];
 
 var project_info = {};
 var engine_info = {};
+var scene_hierarchy = null;
+var scene_node_index = {};
+var scene_selected_path = null;
 
 var default_script = `function init(self)
 
@@ -87,14 +90,39 @@ function codepad_load_editor(callback) {
         //editor.session.setMode("ace/mode/lua");
 
         // Setup panel splitters
-        Split(['#pane-editors', '#pane-canvas'], {
-            direction: 'vertical',
-            onDrag: function () { fix_canvas_size(); }
-        });
+        if (document.getElementById("row-top") && document.getElementById("row-bottom")) {
+            Split(['#row-top', '#row-bottom'], {
+                direction: 'vertical',
+                sizes: [55, 45],
+                minSize: [160, 160],
+                onDrag: function () { fix_canvas_size(); }
+            });
+        }
 
-        Split(['#pane-console', '#pane-editor'], {
-            sizes: [30, 70]
-        });
+        if (document.getElementById("pane-console") && document.getElementById("pane-editor")) {
+            Split(['#pane-console', '#pane-editor'], {
+                direction: 'horizontal',
+                sizes: [30, 70],
+                minSize: [180, 320]
+            });
+        }
+
+        if (document.getElementById("inspector-pane") && document.getElementById("pane-canvas")) {
+            Split(['#inspector-pane', '#pane-canvas'], {
+                direction: 'horizontal',
+                sizes: [30, 70],
+                minSize: [180, 320],
+                onDrag: function () { fix_canvas_size(); }
+            });
+        }
+
+        if (document.getElementById("hierarchy-pane") && document.getElementById("properties-pane")) {
+            Split(['#hierarchy-pane', '#properties-pane'], {
+                direction: 'vertical',
+                sizes: [60, 40],
+                minSize: [80, 80]
+            });
+        }
 
         if (callback) {
             callback();
@@ -234,6 +262,7 @@ function codepad_ready(scenes_json, project_json, engine_json) {
 
     codepad_trigger_url_check();
     codepad_change_scene();
+    setTimeout(codepad_dump_hierarchy, 0);
 }
 
 /**
@@ -269,6 +298,243 @@ function codepad_reload() {
 
 function codepad_restart() {
     codepad_should_restart = true;
+}
+
+function codepad_dump_hierarchy() {
+    if (typeof Module === "undefined" || !Module.ccall) {
+        console.warn("Scene dump unavailable: Module.ccall is missing.");
+        return;
+    }
+    try {
+        var ptr = Module.ccall("CodepadSceneDump_DumpJson", "number", [], []);
+        if (!ptr) {
+            console.warn("Scene dump returned no data.");
+            return;
+        }
+        var json = Module.UTF8ToString(ptr);
+        var data = JSON.parse(json);
+        scene_hierarchy = data;
+        codepad_index_hierarchy(data);
+        codepad_render_hierarchy(data);
+        console.log("Scene hierarchy:", data);
+        return data;
+    } catch (err) {
+        console.error("Scene dump failed:", err);
+    }
+}
+
+function codepad_escape_html(value) {
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function codepad_index_hierarchy(node) {
+    scene_node_index = {};
+    if (!node) {
+        return;
+    }
+    (function walk(current) {
+        if (current && current.path) {
+            scene_node_index[current.path] = current;
+        }
+        if (current && current.children) {
+            for (var i = 0; i < current.children.length; i++) {
+                walk(current.children[i]);
+            }
+        }
+    })(node);
+}
+
+function codepad_build_tree_node(node) {
+    var wrapper = document.createElement("div");
+    var hasChildren = node.children && node.children.length;
+    wrapper.className = "tree-node" + (hasChildren ? " is-expanded" : "");
+
+    var item = document.createElement("div");
+    item.className = "tree-item";
+    item.dataset.path = node.path || "";
+
+    var caret = document.createElement("span");
+    caret.className = "tree-caret";
+    if (!hasChildren) {
+        caret.style.visibility = "hidden";
+    }
+    item.appendChild(caret);
+
+    var label = document.createElement("span");
+    label.className = "tree-label";
+    label.textContent = node.name || "(unnamed)";
+    item.appendChild(label);
+
+    if (node.type) {
+        var meta = document.createElement("span");
+        meta.className = "tree-meta";
+        meta.textContent = node.type;
+        item.appendChild(meta);
+    }
+
+    wrapper.appendChild(item);
+
+    if (hasChildren) {
+        var children = document.createElement("div");
+        children.className = "tree-children";
+        for (var i = 0; i < node.children.length; i++) {
+            children.appendChild(codepad_build_tree_node(node.children[i]));
+        }
+        wrapper.appendChild(children);
+    }
+
+    return wrapper;
+}
+
+function codepad_render_hierarchy(tree) {
+    var container = document.getElementById("hierarchy-tree");
+    if (!container) {
+        return;
+    }
+    container.innerHTML = "";
+    if (!tree) {
+        return;
+    }
+    container.appendChild(codepad_build_tree_node(tree));
+    codepad_bind_hierarchy_events();
+    if (tree.path) {
+        codepad_select_node(tree.path);
+    }
+}
+
+function codepad_bind_hierarchy_events() {
+    var container = document.getElementById("hierarchy-tree");
+    if (!container || container._codepadBound) {
+        return;
+    }
+    container._codepadBound = true;
+    container.addEventListener("click", function (event) {
+        var caret = event.target.closest(".tree-caret");
+        if (caret) {
+            var nodeElem = caret.closest(".tree-node");
+            if (nodeElem && nodeElem.classList.contains("is-expanded")) {
+                nodeElem.classList.remove("is-expanded");
+                nodeElem.classList.add("is-collapsed");
+            } else if (nodeElem && nodeElem.classList.contains("is-collapsed")) {
+                nodeElem.classList.remove("is-collapsed");
+                nodeElem.classList.add("is-expanded");
+            }
+            event.stopPropagation();
+            return;
+        }
+        var item = event.target.closest(".tree-item");
+        if (!item) {
+            return;
+        }
+        var path = item.dataset.path;
+        if (!path) {
+            return;
+        }
+        codepad_select_node(path);
+    });
+}
+
+function codepad_select_node(path) {
+    var container = document.getElementById("hierarchy-tree");
+    if (!container) {
+        return;
+    }
+    var previous = container.querySelector(".tree-item.is-selected");
+    if (previous) {
+        previous.classList.remove("is-selected");
+    }
+    var next = container.querySelector('.tree-item[data-path="' + path + '"]');
+    if (next) {
+        next.classList.add("is-selected");
+    }
+    scene_selected_path = path;
+    codepad_render_properties(scene_node_index[path]);
+}
+
+function codepad_format_prop_value(value) {
+    if (value === null || value === undefined) {
+        return "null";
+    }
+    if (Array.isArray(value)) {
+        return "[" + value.map(codepad_format_prop_value).join(", ") + "]";
+    }
+    if (typeof value === "object") {
+        try {
+            return JSON.stringify(value);
+        } catch (err) {
+            return String(value);
+        }
+    }
+    return String(value);
+}
+
+function codepad_render_properties(node) {
+    var container = document.getElementById("properties-list");
+    if (!container) {
+        return;
+    }
+    container.innerHTML = "";
+    if (!node) {
+        return;
+    }
+
+    var header = document.createElement("div");
+    header.className = "properties-header";
+    header.textContent = node.path || node.name || "Node";
+    container.appendChild(header);
+
+    var props = {};
+    props.name = node.name || "";
+    if (node.path) {
+        props.path = node.path;
+    }
+    if (node.props) {
+        for (var key in node.props) {
+            if (node.props.hasOwnProperty(key)) {
+                props[key] = node.props[key];
+            }
+        }
+    }
+
+    var priority = ["id", "name", "path", "url", "position", "rotation", "scale", "size", "pivot", "anchorPoint", "visible", "enabled", "layer"];
+    var keys = Object.keys(props).sort();
+    keys.sort(function (a, b) {
+        var ai = priority.indexOf(a);
+        var bi = priority.indexOf(b);
+        if (ai === -1 && bi === -1) {
+            return a.localeCompare(b);
+        }
+        if (ai === -1) {
+            return 1;
+        }
+        if (bi === -1) {
+            return -1;
+        }
+        return ai - bi;
+    });
+
+    for (var i = 0; i < keys.length; i++) {
+        var key = keys[i];
+        var row = document.createElement("div");
+        row.className = "prop-row";
+
+        var keySpan = document.createElement("span");
+        keySpan.className = "prop-key";
+        keySpan.textContent = key;
+
+        var valueSpan = document.createElement("span");
+        valueSpan.className = "prop-value";
+        valueSpan.innerHTML = codepad_escape_html(codepad_format_prop_value(props[key]));
+
+        row.appendChild(keySpan);
+        row.appendChild(valueSpan);
+        container.appendChild(row);
+    }
 }
 
 function codepad_get_code(i) {
@@ -471,8 +737,14 @@ function codepad_show_play_embed(callback) {
     };
     splash.innerHTML = "<div>Run code</div>";
     document.body.classList += "embedded";
-    var pane_editors = document.getElementById("pane-editors");
-    pane_editors.remove();
+    var row_top = document.getElementById("row-top");
+    if (row_top) {
+        row_top.remove();
+    }
+    var inspector = document.getElementById("inspector-pane");
+    if (inspector) {
+        inspector.remove();
+    }
 }
 
 function codepad_start(callback) {

@@ -32,12 +32,12 @@
     </div>
 
     <div id="layout">
-        <div id="pane-editors" class="split split-vertical">
-            <div id="pane-console" class="split split-horizontal">
-                <div class="tabs-wrap"><input type="radio" id="console_tab" name="console_tab" value="console_tab" checked ><label for="console_tab">Console</label></div>
-                <div id="console-wrap" class="pane-content">
+        <div id="row-top" class="split split-vertical">
+            <div id="pane-console" class="split split-horizontal pane-content">
+                <div class="tabs-wrap"><input type="radio" id="console_tab" name="console_tab" value="console_tab" checked><label for="console_tab">Console</label></div>
+                <div id="console-wrap">
                     <div id="console"></div>
-                        <button onclick="codepad_clear_console()">Clear</button>
+                    <button onclick="codepad_clear_console()">Clear</button>
                 </div>
             </div>
             <div id="pane-editor" class="split split-horizontal">
@@ -49,12 +49,27 @@
             </div>
         </div>
 
-        <div id="pane-canvas" class="split split-vertical pane-content">
-            <div id="app-container" class="canvas-app-container">
-                <canvas id="canvas" class="canvas-app-canvas" tabindex="1" width="{{display.width}}" height="{{display.height}}"></canvas>
+        <div id="row-bottom" class="split split-vertical">
+            <div id="inspector-pane" class="split split-horizontal pane-content">
+                <div id="inspector-wrap" class="split split-vertical">
+                    <div id="hierarchy-pane" class="split split-vertical">
+                        <div class="tabs-wrap"><input type="radio" id="hierarchy_tab" name="hierarchy_tab" value="hierarchy_tab" checked><label for="hierarchy_tab">Outline</label></div>
+                        <div id="hierarchy-tree"></div>
+                    </div>
+                    <div id="properties-pane" class="split split-vertical">
+                        <div class="tabs-wrap"><input type="radio" id="properties_tab" name="properties_tab" value="properties_tab" checked><label for="properties_tab">Properties</label></div>
+                        <div id="properties-list"></div>
+                    </div>
+                </div>
             </div>
-            <button id="reload_page" onclick="reload_page()">Close</button>
-            <button id="view_source" onclick="view_source()">View Source</button>
+
+            <div id="pane-canvas" class="split split-horizontal pane-content">
+                <div id="app-container" class="canvas-app-container">
+                    <canvas id="canvas" class="canvas-app-canvas" tabindex="1" width="{{display.width}}" height="{{display.height}}"></canvas>
+                </div>
+                <button id="reload_page" onclick="reload_page()">Close</button>
+                <button id="view_source" onclick="view_source()">View Source</button>
+            </div>
         </div>
     </div>
 
