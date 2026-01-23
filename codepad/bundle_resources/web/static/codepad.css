@@ -324,7 +324,6 @@ svg, .svg-image {
     grid-template-columns: 120px 1fr;
     gap: 8px;
     padding: 6px 0px;
-    border-bottom: 1px solid #35383d;
 }
 
 .prop-key {

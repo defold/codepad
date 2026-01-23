@@ -27,6 +27,7 @@ namespace
 
     SceneDumpContext g_Context = { 0, false };
     std::string g_Buffer;
+    std::string g_FilterId;
 
     static void AppendJsonString(std::string& out, const char* value)
     {
@@ -158,7 +159,7 @@ namespace
         {
             return;
         }
-        if (strcmp(key, "id") == 0 || strcmp(key, "type") == 0)
+        if (strcmp(key, "id") == 0 || strcmp(key, "type") == 0 || strcmp(key, "resource") == 0 || strcmp(key, "script_id") == 0)
         {
             return;
         }
@@ -191,7 +192,108 @@ namespace
         }
     }
 
-    static void DumpNode(std::string& out, dmGameObject::SceneNode* node, const std::string& parent_path, int index)
+    static const char* NormalizeType(const char* type_str, std::string& out)
+    {
+        if (!type_str)
+        {
+            return 0;
+        }
+        size_t len = strlen(type_str);
+        if (len > 0 && type_str[len - 1] == 'c')
+        {
+            out.assign(type_str, len - 1);
+            return out.c_str();
+        }
+        return type_str;
+    }
+
+    static bool IsCollectionProxyType(const char* type_str)
+    {
+        if (!type_str)
+        {
+            return false;
+        }
+        return strncmp(type_str, "collectionproxy", 15) == 0;
+    }
+
+    static bool MatchesFilter(const char* name_str, const char* filter)
+    {
+        if (!filter || filter[0] == '\0')
+        {
+            return true;
+        }
+        if (!name_str || name_str[0] == '\0')
+        {
+            return false;
+        }
+        if (strcmp(name_str, filter) == 0)
+        {
+            return true;
+        }
+        if (filter[0] == '#' && strcmp(name_str, filter + 1) == 0)
+        {
+            return true;
+        }
+        if (name_str[0] == '#' && strcmp(name_str + 1, filter) == 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    static bool FindCollectionProxyById(dmGameObject::SceneNode* node, const char* filter, dmGameObject::SceneNode* out)
+    {
+        dmhash_t name_hash = 0;
+        dmhash_t type_hash = 0;
+        GetNodeInfo(node, name_hash, type_hash);
+
+        const char* name_str = name_hash ? dmHashReverseSafe64(name_hash) : 0;
+        const char* type_str = type_hash ? dmHashReverseSafe64(type_hash) : 0;
+
+        if (IsCollectionProxyType(type_str) && MatchesFilter(name_str, filter))
+        {
+            *out = *node;
+            return true;
+        }
+
+        dmGameObject::SceneNodeIterator it = dmGameObject::TraverseIterateChildren(node);
+        while (dmGameObject::TraverseIterateNext(&it))
+        {
+            dmGameObject::SceneNode child = it.m_Node;
+            if (FindCollectionProxyById(&child, filter, out))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static bool FindFirstCollectionProxy(dmGameObject::SceneNode* node, dmGameObject::SceneNode* out)
+    {
+        dmhash_t name_hash = 0;
+        dmhash_t type_hash = 0;
+        GetNodeInfo(node, name_hash, type_hash);
+
+        const char* type_str = type_hash ? dmHashReverseSafe64(type_hash) : 0;
+        if (IsCollectionProxyType(type_str))
+        {
+            *out = *node;
+            return true;
+        }
+
+        dmGameObject::SceneNodeIterator it = dmGameObject::TraverseIterateChildren(node);
+        while (dmGameObject::TraverseIterateNext(&it))
+        {
+            dmGameObject::SceneNode child = it.m_Node;
+            if (FindFirstCollectionProxy(&child, out))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    static void DumpNode(std::string& out, dmGameObject::SceneNode* node)
     {
         dmhash_t name_hash = 0;
         dmhash_t type_hash = 0;
@@ -203,33 +305,13 @@ namespace
             name_str = "node";
         }
 
-        const char* type_str = type_hash ? dmHashReverseSafe64(type_hash) : 0;
-
-        std::string path;
-        if (!parent_path.empty())
-        {
-            path.reserve(parent_path.size() + 32);
-            path.append(parent_path);
-            path.push_back('/');
-        }
-        else
-        {
-            path.reserve(32);
-            path.push_back('/');
-        }
-        path.append(name_str);
-        if (index >= 0)
-        {
-            char index_buf[16];
-            snprintf(index_buf, sizeof(index_buf), "[%d]", index);
-            path.append(index_buf);
-        }
+        const char* raw_type_str = type_hash ? dmHashReverseSafe64(type_hash) : 0;
+        std::string type_clean;
+        const char* type_str = NormalizeType(raw_type_str, type_clean);
 
         out.push_back('{');
         bool first = true;
-        AppendField(out, "name", name_str, &first);
         AppendField(out, "type", type_str, &first);
-        AppendField(out, "path", path.c_str(), &first);
 
         out.append(",\"props\":{");
         bool props_first = true;
@@ -247,7 +329,6 @@ namespace
 
         out.append(",\"children\":[");
         dmGameObject::SceneNodeIterator it = dmGameObject::TraverseIterateChildren(node);
-        int child_index = 0;
         bool first_child = true;
         while (dmGameObject::TraverseIterateNext(&it))
         {
@@ -256,8 +337,7 @@ namespace
                 out.push_back(',');
             }
             first_child = false;
-            DumpNode(out, &it.m_Node, path, child_index);
-            ++child_index;
+            DumpNode(out, &it.m_Node);
         }
         out.push_back(']');
         out.push_back('}');
@@ -280,7 +360,47 @@ namespace
         }
 
         g_Buffer.reserve(4096);
-        DumpNode(g_Buffer, &root, std::string(), 0);
+        dmGameObject::SceneNode target = root;
+        bool found_target = false;
+        if (!g_FilterId.empty())
+        {
+            found_target = FindCollectionProxyById(&root, g_FilterId.c_str(), &target);
+            if (!found_target)
+            {
+                found_target = FindFirstCollectionProxy(&root, &target);
+            }
+        }
+        if (found_target)
+        {
+            dmhash_t type_hash = 0;
+            dmhash_t name_hash = 0;
+            GetNodeInfo(&target, name_hash, type_hash);
+            const char* type_str = type_hash ? dmHashReverseSafe64(type_hash) : 0;
+            if (IsCollectionProxyType(type_str))
+            {
+                g_Buffer.push_back('[');
+                dmGameObject::SceneNodeIterator it = dmGameObject::TraverseIterateChildren(&target);
+                bool first_child = true;
+                while (dmGameObject::TraverseIterateNext(&it))
+                {
+                    if (!first_child)
+                    {
+                        g_Buffer.push_back(',');
+                    }
+                    first_child = false;
+                    DumpNode(g_Buffer, &it.m_Node);
+                }
+                g_Buffer.push_back(']');
+            }
+            else
+            {
+                DumpNode(g_Buffer, &target);
+            }
+        }
+        else
+        {
+            DumpNode(g_Buffer, &root);
+        }
         return g_Buffer.c_str();
     }
 }
@@ -290,10 +410,18 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* CodepadSceneDump_DumpJson()
 {
     return BuildSceneJson();
 }
+extern "C" EMSCRIPTEN_KEEPALIVE void CodepadSceneDump_SetFilter(const char* filter)
+{
+    g_FilterId = filter ? filter : "";
+}
 #else
 extern "C" const char* CodepadSceneDump_DumpJson()
 {
     return 0;
+}
+extern "C" void CodepadSceneDump_SetFilter(const char* filter)
+{
+    (void)filter;
 }
 #endif
 
