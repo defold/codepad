@@ -51,7 +51,7 @@ end
 return {
 	name = "Gui Nodes",
 	url = "#cp_gui_nodes",
-	grid = false,
+	grid = true,
 	scripts = {
 		{
 			url = "cp_gui_nodes:/go#gui",
