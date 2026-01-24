@@ -15,6 +15,14 @@ var scenes = [];
 
 var project_info = {};
 var engine_info = {};
+var scene_hierarchy = null;
+var scene_node_index = {};
+var scene_selected_path = null;
+var scene_structure_signature = null;
+var scene_dump_running = false;
+var scene_dump_frame = 0;
+var scene_dump_missing_warned = false;
+var scene_dump_filter = null;
 
 var default_script = `function init(self)
 
@@ -87,14 +95,39 @@ function codepad_load_editor(callback) {
         //editor.session.setMode("ace/mode/lua");
 
         // Setup panel splitters
-        Split(['#pane-editors', '#pane-canvas'], {
-            direction: 'vertical',
-            onDrag: function () { fix_canvas_size(); }
-        });
+        if (document.getElementById("row-top") && document.getElementById("row-bottom")) {
+            Split(['#row-top', '#row-bottom'], {
+                direction: 'vertical',
+                sizes: [55, 45],
+                minSize: [160, 160],
+                onDrag: function () { fix_canvas_size(); }
+            });
+        }
 
-        Split(['#pane-console', '#pane-editor'], {
-            sizes: [30, 70]
-        });
+        if (document.getElementById("pane-console") && document.getElementById("pane-editor")) {
+            Split(['#pane-console', '#pane-editor'], {
+                direction: 'horizontal',
+                sizes: [30, 70],
+                minSize: [180, 320]
+            });
+        }
+
+        if (document.getElementById("inspector-pane") && document.getElementById("pane-canvas")) {
+            Split(['#inspector-pane', '#pane-canvas'], {
+                direction: 'horizontal',
+                sizes: [30, 70],
+                minSize: [180, 320],
+                onDrag: function () { fix_canvas_size(); }
+            });
+        }
+
+        if (document.getElementById("hierarchy-pane") && document.getElementById("properties-pane")) {
+            Split(['#hierarchy-pane', '#properties-pane'], {
+                direction: 'vertical',
+                sizes: [50, 50],
+                minSize: [80, 80]
+            });
+        }
 
         if (callback) {
             callback();
@@ -194,6 +227,9 @@ function codepad_change_scene() {
             break;
         }
     }
+    scene_structure_signature = null;
+    scene_selected_path = null;
+    codepad_set_dump_filter();
 }
 
 
@@ -234,6 +270,10 @@ function codepad_ready(scenes_json, project_json, engine_json) {
 
     codepad_trigger_url_check();
     codepad_change_scene();
+    setTimeout(function () {
+        codepad_dump_hierarchy(true);
+        codepad_start_dump_loop();
+    }, 0);
 }
 
 /**
@@ -447,12 +487,23 @@ function codepad_is_embedded() {
 
 function fix_canvas_size(event) {
     var canvas = document.getElementById('canvas');
+    if (!canvas) {
+        return;
+    }
+    var container = document.getElementById("app-container") || canvas.parentElement;
+    var rect = container ? container.getBoundingClientRect() : canvas.getBoundingClientRect();
+    var width = rect.width;
+    var height = rect.height;
     if (codepad_is_embedded()) {
-        canvas.width = document.body.offsetWidth;
-        canvas.height = document.body.offsetHeight;
-    } else {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        width = document.body.offsetWidth || width;
+        height = document.body.offsetHeight || height;
+    }
+    if (width > 0 && height > 0) {
+        var dpr = window.devicePixelRatio || 1;
+        canvas.style.width = Math.round(width) + "px";
+        canvas.style.height = Math.round(height) + "px";
+        canvas.width = Math.max(1, Math.round(width * dpr));
+        canvas.height = Math.max(1, Math.round(height * dpr));
     }
 }
 
@@ -471,8 +522,14 @@ function codepad_show_play_embed(callback) {
     };
     splash.innerHTML = "<div>Run code</div>";
     document.body.classList += "embedded";
-    var pane_editors = document.getElementById("pane-editors");
-    pane_editors.remove();
+    var row_top = document.getElementById("row-top");
+    if (row_top) {
+        row_top.remove();
+    }
+    var inspector = document.getElementById("inspector-pane");
+    if (inspector) {
+        inspector.remove();
+    }
 }
 
 function codepad_start(callback) {

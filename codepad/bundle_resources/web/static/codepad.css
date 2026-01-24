@@ -157,8 +157,16 @@ svg, .svg-image {
     margin-right: 6px;
 }
 
-#pane-editor, #pane-console {
+#pane-editor, #pane-console, #pane-canvas, #row-top, #row-bottom, #inspector-pane {
     position: relative;
+}
+
+#inspector-wrap {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
 }
 
 #editor-wrap {
@@ -219,6 +227,121 @@ svg, .svg-image {
     font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
 }
 
+#hierarchy-pane, #properties-pane {
+    position: relative;
+    height: 100%;
+}
+
+#hierarchy-tree, #properties-list {
+    position: absolute;
+    top: 38px;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    overflow: auto;
+    font-size: 12px;
+}
+
+#hierarchy-pane .tabs-wrap, #properties-pane .tabs-wrap {
+    background-color: #2a2d32;
+    border-bottom: 1px solid #1f2125;
+}
+
+#hierarchy-pane .tabs-wrap label, #properties-pane .tabs-wrap label {
+    opacity: 1;
+    border-bottom: none;
+    color: #cfd3d7;
+    font-weight: 600;
+}
+
+.tree-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.tree-item:hover {
+    background-color: #34373c;
+}
+
+.tree-item.is-selected {
+    background-color: #3d4046;
+    color: #ffffff;
+}
+
+.tree-caret {
+    width: 10px;
+    height: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #9aa0a6;
+    font-size: 10px;
+    flex: 0 0 10px;
+}
+
+.tree-caret::before {
+    content: "\25B8";
+    transform: rotate(0deg);
+    transition: transform 0.15s ease;
+}
+
+.tree-node.is-expanded > .tree-item .tree-caret::before {
+    transform: rotate(90deg);
+}
+
+.tree-node.is-collapsed > .tree-children {
+    display: none;
+}
+
+.tree-label {
+    font-weight: 600;
+}
+
+.tree-meta {
+    margin-left: auto;
+    opacity: 0.6;
+    font-size: 11px;
+}
+
+.tree-children {
+    margin-left: 14px;
+    border-left: 1px solid #32353a;
+    padding-left: 6px;
+}
+
+.properties-header {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #eff2f6;
+}
+
+.prop-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    padding: 6px 0px;
+}
+
+.prop-key {
+    color: #9aa0a6;
+    text-transform: capitalize;
+}
+
+.prop-value {
+    background-color: #25282d;
+    border: 1px solid #3a3d43;
+    border-radius: 3px;
+    color: #d0d4d9;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 4px 6px;
+}
+
 .gutter {
 }
 
@@ -233,6 +356,11 @@ svg, .svg-image {
 .split.split-horizontal, .gutter.gutter-horizontal {
   height: 100%;
   float: left;
+}
+
+.split.split-vertical, .gutter.gutter-vertical {
+  width: 100%;
+  float: none;
 }
 
 .canvas-app-container {
