@@ -84,7 +84,21 @@
             },
             engine_arguments: [{{#DEFOLD_ENGINE_ARGUMENTS}}"{{.}}",{{/DEFOLD_ENGINE_ARGUMENTS}}],
             custom_heap_size: {{DEFOLD_HEAP_SIZE}},
+            full_screen_container: "#app-container",
+            resize_window_callback: function() {
+                if (typeof fix_canvas_size === "function") {
+                    fix_canvas_size();
+                }
+            },
             disable_context_menu: true
+        }
+        if (typeof CUSTOM_PARAMETERS !== "undefined") {
+            CUSTOM_PARAMETERS.full_screen_container = "#app-container";
+            CUSTOM_PARAMETERS.resize_window_callback = function() {
+                if (typeof fix_canvas_size === "function") {
+                    fix_canvas_size();
+                }
+            };
         }
 
         Module['onRuntimeInitialized'] = function() {

@@ -854,12 +854,23 @@ function codepad_is_embedded() {
 
 function fix_canvas_size(event) {
     var canvas = document.getElementById('canvas');
+    if (!canvas) {
+        return;
+    }
+    var container = document.getElementById("app-container") || canvas.parentElement;
+    var rect = container ? container.getBoundingClientRect() : canvas.getBoundingClientRect();
+    var width = rect.width;
+    var height = rect.height;
     if (codepad_is_embedded()) {
-        canvas.width = document.body.offsetWidth;
-        canvas.height = document.body.offsetHeight;
-    } else {
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
+        width = document.body.offsetWidth || width;
+        height = document.body.offsetHeight || height;
+    }
+    if (width > 0 && height > 0) {
+        var dpr = window.devicePixelRatio || 1;
+        canvas.style.width = Math.round(width) + "px";
+        canvas.style.height = Math.round(height) + "px";
+        canvas.width = Math.max(1, Math.round(width * dpr));
+        canvas.height = Math.max(1, Math.round(height * dpr));
     }
 }
 

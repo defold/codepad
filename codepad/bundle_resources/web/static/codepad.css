@@ -358,6 +358,11 @@ svg, .svg-image {
   float: left;
 }
 
+.split.split-vertical, .gutter.gutter-vertical {
+  width: 100%;
+  float: none;
+}
+
 .canvas-app-container {
   background: #000;
   position: relative;

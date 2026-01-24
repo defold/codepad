@@ -29,3 +29,8 @@ shared_state = 1
 htmlfile = /codepad/template.html
 scale_mode = stretch
 
+[render]
+clear_color_green = 0.18
+clear_color_red = 0.17
+clear_color_blue = 0.2
+
